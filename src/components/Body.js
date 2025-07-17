@@ -11,29 +11,29 @@ const Body = () => {
   const [searchText, setSearchText] = useState("");
 
   const RestaurantCardPromoted = withPromotedLabel(RestaurantCard);
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const data = await fetch(
-      "https://www.swiggy.com/dapi/restaurants/list/v5?lat=19.0759837&lng=72.8776559&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
-    );
-    const json = await data.json();
+    try {
+      const response = await fetch("/.netlify/functions/swiggy");
+      const json = await response.json();
 
-    setlistOfRestaurant(
-      json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants
-    );
-    setFilteredRestaurant(
-      json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants
-    );
+      const restaurants =
+        json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants;
+
+      setlistOfRestaurant(restaurants || []);
+      setFilteredRestaurant(restaurants || []);
+    } catch (err) {
+      console.error("Error fetching restaurant data:", err);
+    }
   };
 
   const onlineStatus = useOnlineStatus();
   if (onlineStatus === false) {
-    return (
-      <h1>Looks like you are offline !! check your Internet Connection</h1>
-    );
+    return <h1>Looks like you are offline!! Check your Internet Connection.</h1>;
   }
 
   const { loggedUser, setLoggedUser } = useContext(userContext);
@@ -66,12 +66,14 @@ const Body = () => {
             Search
           </button>
         </div>
-         <button
-            className="btn text-sm"
-            onClick={() => { setFilteredRestaurant(listOfRestaurant); }}
-          >
-            All Restaurant
-          </button>
+        <button
+          className="btn text-sm"
+          onClick={() => {
+            setFilteredRestaurant(listOfRestaurant);
+          }}
+        >
+          All Restaurant
+        </button>
         <button
           className="filter-btn"
           onClick={() => {
